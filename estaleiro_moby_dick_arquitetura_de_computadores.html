@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estaleiro Moby Dick: Arquitetura de Computadores</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Cinzel, Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --navy-deep: #060d1a;
+      --navy-card: #0b162c;
+      --gold-parchment: #f4c95d;
+      --cyan-blueprint: #38bdf8;
+      --emerald-installed: #10b981;
+      --red-seismic: #ef4444;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--navy-deep);
+      background-image:
+        radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.08), transparent 35%),
+        radial-gradient(circle at 85% 90%, rgba(244, 201, 93, 0.07), transparent 40%);
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    .font-pirate {
+      font-family: 'Cinzel', serif;
+    }
+
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Grade de Planta Náutica (Blueprint) */
+    .blueprint-grid {
+      background-color: #081326;
+      background-image:
+        linear-gradient(to right, rgba(56, 189, 248, 0.09) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.09) 1px, transparent 1px),
+        linear-gradient(to right, rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.035) 1px, transparent 1px);
+      background-size: 44px 44px, 44px 44px, 11px 11px, 11px 11px;
+    }
+
+    /* Terremoto do Barba Branca (Gura Gura no Mi) */
+    @keyframes guraQuake {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      10% { transform: translate(-13px, -9px) rotate(-0.8deg); }
+      20% { transform: translate(15px, 7px) rotate(0.9deg); }
+      30% { transform: translate(-16px, 10px) rotate(-1deg); }
+      40% { transform: translate(13px, -11px) rotate(0.8deg); }
+      50% { transform: translate(-11px, 8px) rotate(-0.6deg); }
+      60% { transform: translate(12px, -6px) rotate(0.6deg); }
+      70% { transform: translate(-8px, 5px) rotate(-0.4deg); }
+      80% { transform: translate(6px, -4px) rotate(0.3deg); }
+      90% { transform: translate(-4px, 2px) rotate(-0.2deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+
+    .quake-active {
+      animation: guraQuake 0.78s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    /* Pulso das rachaduras atmosféricas */
+    @keyframes crackFlash {
+      0% { opacity: 0; transform: scale(0.94); }
+      12% { opacity: 1; transform: scale(1.01); }
+      85% { opacity: 0.96; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.03); }
+    }
+
+    .crack-overlay-anim {
+      animation: crackFlash 5.0s ease-out forwards;
+    }
+
+    /* Ondas animadas no estaleiro */
+    @keyframes waveDrift {
+      0%, 100% { transform: translateX(0px); }
+      50% { transform: translateX(-20px); }
+    }
+
+    @keyframes waveDriftReverse {
+      0%, 100% { transform: translateX(-14px); }
+      50% { transform: translateX(14px); }
+    }
+
+    .wave-front {
+      animation: waveDrift 5.2s ease-in-out infinite;
+    }
+
+    .wave-back {
+      animation: waveDriftReverse 7.4s ease-in-out infinite;
+    }
+
+    /* Balanço épico no mar quando o navio está completo */
+    @keyframes shipFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(0.45deg); }
+    }
+
+    .ship-sailing {
+      animation: shipFloat 4.6s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+
+    /* Transição suave ao instalar peças no SVG */
+    .ship-part {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), filter 0.3s ease;
+      pointer-events: none;
+    }
+
+    .ship-part.installed {
+      opacity: 1;
+      transform: translateY(0px);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .ship-part.installed:hover {
+      filter: drop-shadow(0 0 9px rgba(244, 201, 93, 0.9));
+    }
+
+    /* Barra de rolagem estilizada */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #060d1a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e3a5f;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #38bdf8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-amber-400 selection:text-slate-950">
+
+  <!-- Sobreposição Dramática do Terremoto do Barba Branca (Gura Gura no Mi) -->
+  <div id="quakeOverlay" class="fixed inset-0 z-50 pointer-events-none hidden flex items-center justify-center p-4">
+    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="none">
+      <defs>
+        <radialGradient id="guraSphere" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+          <stop offset="45%" stop-color="#38bdf8" stop-opacity="0.65" />
+          <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+        </radialGradient>
+        <filter id="crackGlow">
+          <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+          <feMerge>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <rect width="1200" height="800" fill="rgba(127, 29, 29, 0.30)" />
+      <circle cx="250" cy="230" r="150" fill="url(#guraSphere)" />
+      <circle cx="950" cy="560" r="170" fill="url(#guraSphere)" />
+      <!-- Rachaduras brancas/cianas cruzando a viewport -->
+      <g stroke="#e0f2fe" stroke-width="4" fill="none" filter="url(#crackGlow)" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="250,230 165,130 80,100 15,35" />
+        <polyline points="250,230 375,145 500,120 625,45" />
+        <polyline points="250,230 200,365 100,460 25,575" />
+        <polyline points="250,230 400,315 545,365 680,450" />
+        <polyline points="165,130 145,215 80,260" stroke="#38bdf8" stroke-width="2.5" />
+        <polyline points="375,145 420,230 495,245" stroke="#38bdf8" stroke-width="2.5" />
+
+        <polyline points="950,560 825,450 710,415 575,325" />
+        <polyline points="950,560 1065,440 1150,395 1195,310" />
+        <polyline points="950,560 865,670 760,735 685,795" />
+        <polyline points="950,560 1070,645 1140,720 1190,790" />
+        <polyline points="825,450 790,535 705,565" stroke="#38bdf8" stroke-width="2.5" />
+      </g>
+    </svg>
+
+    <!-- Card Central do Impacto Sísmico -->
+    <div class="relative z-10 max-w-lg w-full bg-[#060d1a]/95 border-2 border-red-500 rounded-2xl p-6 shadow-[0_0_55px_rgba(239,68,68,0.65)] text-center">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-500/20 border border-red-400/50 text-red-300 text-xs font-bold uppercase tracking-wider mb-3">
+        <span>💥 Gura Gura no Mi • Impacto Sísmico!</span>
+      </div>
+      <h2 class="font-pirate text-2xl sm:text-3xl font-bold text-white mb-2">
+        O Barba Branca estremeceu o estaleiro!
+      </h2>
+      <p id="quakeWrongMsg" class="text-slate-300 text-sm sm:text-base mb-4">
+        Essa peça não pertence a esta etapa da construção!
+      </p>
+      <div class="bg-amber-950/65 border border-amber-400/50 rounded-xl p-4 text-left">
+        <p class="text-xs font-bold uppercase tracking-wider text-amber-300 mb-1">
+          🧭 Pista Direcionadora do Carpinteiro-Chefe:
+        </p>
+        <p id="quakeHintText" class="text-amber-100 text-sm leading-relaxed"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Discreto de Aviso (ex: ao reiniciar) -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-40 hidden bg-[#0b162c] border border-sky-400/50 text-sky-200 px-4 py-2.5 rounded-xl shadow-xl text-xs sm:text-sm font-medium flex items-center gap-2">
+    <span id="toastText">Estaleiro reiniciado!</span>
+  </div>
+
+  <!-- Wrapper Principal (recebe quake-active ao errar) -->
+  <div id="appContainer" class="flex-1 w-full max-w-[1380px] mx-auto px-4 sm:px-6 py-4 sm:py-6 flex flex-col gap-5">
+
+    <!-- Cabeçalho Superior Limpo -->
+    <header class="bg-[#0b162c]/95 border border-slate-700/80 rounded-2xl px-4 sm:px-6 py-3.5 shadow-lg flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <!-- Emblema Náutico Moby Dick -->
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400/20 to-sky-500/20 border border-amber-400/45 flex items-center justify-center shrink-0 shadow-inner">
+          <svg class="w-7 h-7" viewBox="0 0 64 64" fill="none">
+            <path d="M32 10V50M21 21H43M17 42C17 50 23.5 55 32 55C40.5 55 47 50 47 42" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+            <path d="M10 32C16 32 21 26 32 26C43 26 48 32 54 32C49 36 42 35 32 33C22 35 15 36 10 32Z" fill="#f4c95d"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-pirate text-xl sm:text-2xl font-bold text-[#f4c95d] tracking-wide leading-tight">
+            Estaleiro Moby Dick
+          </h1>
+          <p class="text-xs sm:text-sm text-sky-300/90 font-medium">
+            Arquitetura de Computadores na Prática
+          </p>
+        </div>
+      </div>
+
+      <!-- Contadores e Controles Sempre Acessíveis -->
+      <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+        <!-- Contador de Etapa -->
+        <div class="bg-[#060d1a] border border-slate-700/80 rounded-xl px-3.5 py-2 flex items-center gap-2">
+          <span class="text-xs text-slate-400">Etapa:</span>
+          <span id="headerStageCounter" class="font-mono-tech text-xs sm:text-sm font-bold text-[#f4c95d]">1 / 16</span>
+        </div>
+
+        <!-- Contador de Terremotos (Erros) -->
+        <div class="bg-[#060d1a] border border-slate-700/80 rounded-xl px-3.5 py-2 flex items-center gap-2" title="Terremotos causados por encaixes incorretos">
+          <span class="text-xs">💥</span>
+          <span class="text-xs text-slate-400 hidden sm:inline">Terremotos:</span>
+          <span id="headerTremorCount" class="font-mono-tech text-xs sm:text-sm font-bold text-red-400">0</span>
+        </div>
+
+        <!-- Botão Guia Naval (16) -->
+        <button id="btnOpenGuide" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-100 border border-sky-400/35 text-xs sm:text-sm font-semibold transition flex items-center gap-1.5">
+          <span>📖</span>
+          <span>Guia Naval (16)</span>
+        </button>
+
+        <!-- Botão Som -->
+        <button id="btnToggleSound" type="button" class="px-3 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-100 border border-slate-600/80 text-xs sm:text-sm font-semibold transition flex items-center gap-1.5" title="Ativar ou silenciar efeitos sonoros">
+          <span id="soundIcon">🔊</span>
+          <span class="hidden md:inline">Som</span>
+        </button>
+
+        <!-- Botão Reiniciar (reinicia imediatamente do zero) -->
+        <button id="btnRestart" type="button" class="px-3.5 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/35 text-red-300 hover:text-white border border-red-500/50 text-xs sm:text-sm font-bold transition flex items-center gap-1.5">
+          <span>↺</span>
+          <span>Reiniciar</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Layout Principal em Duas Colunas Amplas (1.05fr / 1fr no desktop) -->
+    <main class="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-5 items-start">
+
+      <!-- ===================================================================
+           COLUNA ESQUERDA: Missão Atual (Sticky) + Estaleiro Visual Moby Dick
+           =================================================================== -->
+      <div class="flex flex-col gap-5">
+
+        <!-- Card da Missão Atual (Sticky discreto no topo ao rolar) -->
+        <section id="missionCard" class="lg:sticky lg:top-4 lg:z-20 bg-gradient-to-br from-[#0b162c] via-[#0b162c] to-amber-950/35 border border-amber-400/45 rounded-2xl p-5 shadow-xl backdrop-blur-md">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <span id="stepBadge" class="px-3 py-1 rounded-lg bg-amber-400/15 border border-amber-400/40 text-[#f4c95d] font-mono-tech text-xs font-bold">
+              ETAPA 1 / 16
+            </span>
+            <span id="stepZoneBadge" class="text-xs font-medium text-sky-300 bg-[#060d1a]/90 px-3 py-1 rounded-full border border-sky-400/25">
+              Setor 1: Fundo do Casco
+            </span>
+          </div>
+
+          <h2 id="missionTitle" class="font-pirate text-lg sm:text-xl font-bold text-[#f4c95d] mb-2">
+            Ordem de Serviço do Estaleiro
+          </h2>
+          <p id="missionPrompt" class="text-slate-100 text-sm sm:text-[15px] leading-relaxed">
+            Carregando pedido do estaleiro...
+          </p>
+
+          <!-- Pista Direcionadora (Aparece após erro e permanece visível) -->
+          <div id="persistentHintBox" class="hidden mt-3.5 bg-red-950/55 border border-amber-400/65 rounded-xl p-3.5">
+            <p class="text-xs font-bold uppercase tracking-wider text-amber-300 mb-1">
+              🧭 Pista Direcionadora:
+            </p>
+            <p id="persistentHintText" class="text-xs sm:text-sm text-amber-100 leading-relaxed"></p>
+          </div>
+        </section>
+
+        <!-- Estaleiro Visual do Moby Dick -->
+        <section class="blueprint-grid border border-sky-400/30 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-4">
+          <!-- Cabeçalho do Estaleiro + Barra de Progresso (0% a 100%) -->
+          <div class="flex flex-col gap-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="font-mono-tech text-xs text-sky-300 uppercase tracking-wider font-semibold">
+                  Estaleiro Naval • Planta Moby Dick
+                </span>
+              </div>
+              <span id="shipHoverLabel" class="font-mono-tech text-xs text-[#f4c95d] bg-[#060d1a]/90 px-3 py-1 rounded-lg border border-slate-700/80">
+                Toque nas peças já instaladas para revisar
+              </span>
+            </div>
+
+            <!-- Barra de Progresso -->
+            <div class="bg-[#060d1a]/90 border border-slate-800 rounded-xl p-2.5 flex items-center gap-3">
+              <span class="text-xs font-semibold text-slate-300 shrink-0">Construção:</span>
+              <div class="flex-1 h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                <div id="progressBar" class="h-full bg-gradient-to-r from-sky-400 via-[#f4c95d] to-emerald-400 transition-all duration-500" style="width: 0%"></div>
+              </div>
+              <span id="progressPercent" class="font-mono-tech text-xs font-bold text-emerald-400 shrink-0">0%</span>
+            </div>
+          </div>
+
+          <!-- Grande Painel SVG Progressivo do Moby Dick -->
+          <div class="relative w-full rounded-xl overflow-hidden border border-sky-400/20 bg-[#060d1a]/60">
+            <svg id="mobyDickSvg" class="w-full h-auto block select-none" viewBox="0 0 820 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Gradientes do Navio -->
+                <linearGradient id="woodHull" x1="0" y1="270" x2="0" y2="375" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#92400e" />
+                  <stop offset="55%" stop-color="#78350f" />
+                  <stop offset="100%" stop-color="#451a03" />
+                </linearGradient>
+                <linearGradient id="whaleWhite" x1="0" y1="215" x2="0" y2="305" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#ffffff" />
+                  <stop offset="65%" stop-color="#e2e8f0" />
+                  <stop offset="100%" stop-color="#94a3b8" />
+                </linearGradient>
+                <linearGradient id="sailGrad" x1="0" y1="55" x2="0" y2="235" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#ffffff" />
+                  <stop offset="100%" stop-color="#cbd5e1" />
+                </linearGradient>
+              </defs>
+
+              <!-- Guindastes de Fundo do Estaleiro -->
+              <g stroke="#38bdf8" stroke-opacity="0.22" stroke-width="2">
+                <path d="M52 380V92L168 62M52 132L126 78M74 380V104" />
+                <line x1="152" y1="66" x2="152" y2="148" stroke-dasharray="4 4" />
+                <path d="M768 380V102L662 72M768 142L698 88M746 380V114" />
+                <line x1="678" y1="78" x2="678" y2="156" stroke-dasharray="4 4" />
+              </g>
+
+              <!-- Silhueta Pontilhada (Planta Guia do Moby Dick Completo) -->
+              <g stroke="#38bdf8" stroke-opacity="0.26" stroke-width="1.5" stroke-dasharray="5 5">
+                <path d="M135 278 Q170 368 250 373 L590 373 Q675 363 725 273 Q685 248 640 268 L195 268 Z" />
+                <rect x="200" y="195" width="136" height="72" rx="6" />
+                <line x1="265" y1="195" x2="265" y2="68" />
+                <line x1="365" y1="268" x2="365" y2="45" />
+                <line x1="475" y1="268" x2="475" y2="45" />
+                <line x1="575" y1="268" x2="575" y2="70" />
+              </g>
+
+              <!-- GRUPO PRINCIPAL DO NAVIO -->
+              <g id="mobyShipGroup">
+
+                <!-- 1. MEMÓRIA DE MASSA: Porão de Carga e Arquivo Geral -->
+                <g id="part-massa" class="ship-part" data-comp="massa">
+                  <path d="M140 280 Q175 366 252 370 L588 370 Q664 362 704 280 Z" fill="url(#woodHull)" stroke="#f4c95d" stroke-width="2" />
+                  <rect x="225" y="307" width="340" height="48" rx="6" fill="#291205" stroke="#d97706" stroke-width="1.5" />
+                  <rect x="238" y="320" width="34" height="28" rx="3" fill="#b45309" stroke="#fcd34d" stroke-width="1" />
+                  <rect x="278" y="316" width="38" height="32" rx="3" fill="#92400e" stroke="#fcd34d" stroke-width="1" />
+                  <rect x="322" y="322" width="32" height="26" rx="3" fill="#b45309" stroke="#fcd34d" stroke-width="1" />
+                  <rect x="465" y="317" width="40" height="31" rx="3" fill="#92400e" stroke="#fcd34d" stroke-width="1" />
+                  <rect x="512" y="321" width="42" height="27" rx="3" fill="#b45309" stroke="#fcd34d" stroke-width="1" />
+                  <text x="408" y="338" text-anchor="middle" fill="#fcd34d" font-size="10" font-family="JetBrains Mono" font-weight="bold">PORÃO (MASSA)</text>
+                </g>
+
+                <!-- 2. DATA BUS: Corredores, Escadas e Elevadores de Carga -->
+                <g id="part-databus" class="ship-part" data-comp="databus">
+                  <rect x="142" y="266" width="560" height="15" rx="4" fill="#b45309" stroke="#fde68a" stroke-width="1.5" />
+                  <rect x="368" y="268" width="34" height="86" fill="#0f172a" stroke="#38bdf8" stroke-width="1.8" />
+                  <line x1="374" y1="278" x2="396" y2="278" stroke="#38bdf8" stroke-width="2" />
+                  <line x1="374" y1="292" x2="396" y2="292" stroke="#38bdf8" stroke-width="2" />
+                  <line x1="374" y1="306" x2="396" y2="306" stroke="#38bdf8" stroke-width="2" />
+                  <line x1="374" y1="320" x2="396" y2="320" stroke="#38bdf8" stroke-width="2" />
+                  <line x1="374" y1="334" x2="396" y2="334" stroke="#38bdf8" stroke-width="2" />
+                  <path d="M358 290 L358 328 M353 295 L358 288 L363 295 M353 323 L358 330 L363 323" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" />
+                </g>
+
+                <!-- 3. ADDRESS BUS: Tubos Acústicos / Interfone de Localização -->
+                <g id="part-addressbus" class="ship-part" data-comp="addressbus">
+                  <path d="M250 257 V297 H435 V270" stroke="#f4c95d" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                  <circle cx="250" cy="254" r="6" fill="#f4c95d" stroke="#78350f" stroke-width="1.5" />
+                  <circle cx="435" cy="267" r="6" fill="#f4c95d" stroke="#78350f" stroke-width="1.5" />
+                  <circle cx="310" cy="297" r="5" fill="#f4c95d" stroke="#78350f" stroke-width="1.5" />
+                </g>
+
+                <!-- 4. RAM: Mesa de Cartas Náuticas Aberta -->
+                <g id="part-ram" class="ship-part" data-comp="ram">
+                  <rect x="422" y="234" width="76" height="32" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="1.8" />
+                  <rect x="430" y="239" width="60" height="18" rx="2" fill="#e0f2fe" />
+                  <path d="M435 249 Q450 241 465 250 T485 245" stroke="#0284c7" stroke-width="1.5" fill="none" />
+                  <text x="460" y="229" text-anchor="middle" fill="#7dd3fc" font-size="9" font-family="JetBrains Mono" font-weight="bold">RAM (MESA)</text>
+                </g>
+
+                <!-- 5. DMA: Contramestre com Autonomia de Carga -->
+                <g id="part-dma" class="ship-part" data-comp="dma">
+                  <path d="M518 322 V224 H492" stroke="#10b981" stroke-width="3" fill="none" stroke-linecap="round" />
+                  <line x1="496" y1="224" x2="496" y2="238" stroke="#10b981" stroke-width="2" stroke-dasharray="2 2" />
+                  <circle cx="518" cy="254" r="8" fill="#059669" stroke="#a7f3d0" stroke-width="1.5" />
+                  <text x="546" y="252" fill="#6ee7b7" font-size="9" font-family="JetBrains Mono" font-weight="bold">DMA</text>
+                </g>
+
+                <!-- 6. ROM: Placa de Bronze Fixada na Parede -->
+                <g id="part-rom" class="ship-part" data-comp="rom">
+                  <rect x="172" y="296" width="42" height="30" rx="4" fill="#d97706" stroke="#fef3c7" stroke-width="2" />
+                  <line x1="179" y1="305" x2="207" y2="305" stroke="#451a03" stroke-width="2" />
+                  <line x1="179" y1="312" x2="203" y2="312" stroke="#451a03" stroke-width="2" />
+                  <line x1="179" y1="319" x2="198" y2="319" stroke="#451a03" stroke-width="2" />
+                  <text x="193" y="292" text-anchor="middle" fill="#fde68a" font-size="9" font-family="JetBrains Mono" font-weight="bold">ROM</text>
+                </g>
+
+                <!-- 7. EEPROM: Livro de Registro de Calibração -->
+                <g id="part-eeprom" class="ship-part" data-comp="eeprom">
+                  <rect x="622" y="238" width="38" height="28" rx="4" fill="#312e81" stroke="#f472b6" stroke-width="1.8" />
+                  <circle cx="641" cy="252" r="6" fill="none" stroke="#f9a8d4" stroke-width="1.8" />
+                  <line x1="641" y1="244" x2="641" y2="260" stroke="#f9a8d4" stroke-width="1.2" />
+                  <text x="641" y="232" text-anchor="middle" fill="#fbcfe8" font-size="8.5" font-family="JetBrains Mono" font-weight="bold">EEPROM</text>
+                </g>
+
+                <!-- 8. FLASH: Diário de Bordo Digital / Fichário Moderno -->
+                <g id="part-flash" class="ship-part" data-comp="flash">
+                  <rect x="568" y="234" width="44" height="32" rx="4" fill="#1e1b4b" stroke="#a78bfa" stroke-width="1.8" />
+                  <rect x="575" y="240" width="30" height="8" rx="1.5" fill="#8b5cf6" />
+                  <rect x="575" y="252" width="30" height="8" rx="1.5" fill="#c4b5fd" />
+                  <text x="590" y="229" text-anchor="middle" fill="#ddd6fe" font-size="9" font-family="JetBrains Mono" font-weight="bold">FLASH</text>
+                </g>
+
+                <!-- 9. CPU: Passadiço (Ponte de Comando) -->
+                <g id="part-cpu" class="ship-part" data-comp="cpu">
+                  <rect x="195" y="194" width="142" height="72" rx="7" fill="#1e293b" stroke="#f8fafc" stroke-width="2" />
+                  <rect x="188" y="187" width="156" height="10" rx="4" fill="#dc2626" stroke="#fca5a5" stroke-width="1.2" />
+                  <rect x="206" y="205" width="120" height="24" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" />
+                  <text x="266" y="181" text-anchor="middle" fill="#ffffff" font-size="10" font-family="JetBrains Mono" font-weight="bold">CPU • PASSADIÇO</text>
+                </g>
+
+                <!-- 10. UC: Comandante (Capitão) -->
+                <g id="part-uc" class="ship-part" data-comp="uc">
+                  <circle cx="232" cy="217" r="6" fill="#f4c95d" />
+                  <path d="M222 229 C222 223 242 223 242 229" fill="#dc2626" />
+                  <circle cx="247" cy="219" r="7" stroke="#f59e0b" stroke-width="2" fill="none" />
+                  <text x="228" y="246" text-anchor="middle" fill="#fde047" font-size="8.5" font-family="JetBrains Mono" font-weight="bold">UC</text>
+                </g>
+
+                <!-- 11. ULA: Navegador (Oficial de Derrota) -->
+                <g id="part-ula" class="ship-part" data-comp="ula">
+                  <circle cx="275" cy="217" r="5.5" fill="#38bdf8" />
+                  <polygon points="286,224 293,211 300,224" stroke="#10b981" stroke-width="2" fill="none" />
+                  <text x="284" y="246" text-anchor="middle" fill="#6ee7b7" font-size="8.5" font-family="JetBrains Mono" font-weight="bold">ULA</text>
+                </g>
+
+                <!-- 12. REGISTRADORES: Anotações na Mão / Prancheta do Comandante -->
+                <g id="part-registradores" class="ship-part" data-comp="registradores">
+                  <rect x="206" y="235" width="16" height="20" rx="2" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5" />
+                  <line x1="209" y1="240" x2="219" y2="240" stroke="#0f172a" stroke-width="1.5" />
+                  <line x1="209" y1="245" x2="217" y2="245" stroke="#0f172a" stroke-width="1.5" />
+                  <text x="214" y="263" text-anchor="middle" fill="#fed7aa" font-size="7.5" font-family="JetBrains Mono" font-weight="bold">REG</text>
+                </g>
+
+                <!-- 13. CACHE: Quadro de Avisos na Parede do Passadiço -->
+                <g id="part-cache" class="ship-part" data-comp="cache">
+                  <rect x="306" y="235" width="24" height="22" rx="3" fill="#fef08a" stroke="#ef4444" stroke-width="1.8" />
+                  <circle cx="312" cy="240" r="2" fill="#dc2626" />
+                  <circle cx="324" cy="240" r="2" fill="#dc2626" />
+                  <line x1="310" y1="246" x2="326" y2="246" stroke="#713f12" stroke-width="1.5" />
+                  <line x1="310" y1="251" x2="322" y2="251" stroke="#713f12" stroke-width="1.5" />
+                  <text x="318" y="264" text-anchor="middle" fill="#fef08a" font-size="7.5" font-family="JetBrains Mono" font-weight="bold">CACHE</text>
+                </g>
+
+                <!-- 14. DUAL CORE: Duas Divisões de Comando Lado a Lado -->
+                <g id="part-dualcore" class="ship-part" data-comp="dualcore">
+                  <rect x="362" y="57" width="7" height="209" fill="#78350f" stroke="#fde68a" stroke-width="1" />
+                  <rect x="472" y="57" width="7" height="209" fill="#78350f" stroke="#fde68a" stroke-width="1" />
+                  <path d="M369 74 Q408 107 369 147 Z" fill="url(#sailGrad)" stroke="#94a3b8" stroke-width="1.5" />
+                  <path d="M479 74 Q518 107 479 147 Z" fill="url(#sailGrad)" stroke="#94a3b8" stroke-width="1.5" />
+                  <rect x="369" y="57" width="28" height="14" rx="2" fill="#dc2626" />
+                  <text x="383" y="67" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">DIV 1</text>
+                  <rect x="479" y="57" width="28" height="14" rx="2" fill="#dc2626" />
+                  <text x="493" y="67" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">DIV 2</text>
+                </g>
+
+                <!-- 15. QUAD CORE: Quatro Divisões de Comando + Proa de Baleia e Bandeira do Barba Branca -->
+                <g id="part-quadcore" class="ship-part" data-comp="quadcore">
+                  <rect x="262" y="77" width="6" height="110" fill="#78350f" stroke="#fde68a" stroke-width="1" />
+                  <rect x="572" y="77" width="6" height="189" fill="#78350f" stroke="#fde68a" stroke-width="1" />
+                  <path d="M268 90 Q302 117 268 152 Z" fill="url(#sailGrad)" stroke="#94a3b8" stroke-width="1.5" />
+                  <path d="M578 90 Q615 122 578 160 Z" fill="url(#sailGrad)" stroke="#94a3b8" stroke-width="1.5" />
+                  <path d="M369 154 Q435 184 369 226 Z" fill="url(#sailGrad)" stroke="#94a3b8" stroke-width="1.5" />
+                  <path d="M479 154 Q545 184 479 226 Z" fill="url(#sailGrad)" stroke="#94a3b8" stroke-width="1.5" />
+                  <!-- Emblema estilizado do Barba Branca na vela -->
+                  <path d="M376 190 C383 190 386 186 393 186 C400 186 403 190 410 190" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                  <rect x="268" y="77" width="28" height="13" rx="2" fill="#dc2626" />
+                  <text x="282" y="86" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">DIV 3</text>
+                  <rect x="578" y="77" width="28" height="13" rx="2" fill="#dc2626" />
+                  <text x="592" y="86" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">DIV 4</text>
+
+                  <!-- Proa Icônica de Baleia Branca -->
+                  <path d="M685 266 C715 234 768 238 785 268 C792 282 778 298 752 298 L695 294 Z" fill="url(#whaleWhite)" stroke="#94a3b8" stroke-width="2" />
+                  <circle cx="755" cy="264" r="4" fill="#0f172a" />
+                  <path d="M726 284 Q755 288 780 280" stroke="#64748b" stroke-width="2" fill="none" />
+                  <!-- Cauda de Baleia na Popa -->
+                  <path d="M142 274 C108 258 92 234 106 220 C116 230 126 246 138 252 C142 238 148 222 160 216 C166 234 158 258 146 274 Z" fill="url(#whaleWhite)" stroke="#94a3b8" stroke-width="2" />
+                </g>
+
+                <!-- 16. MICROCONTROLADOR: Bote Salva-Vidas Motorizado Autônomo -->
+                <g id="part-microcontrolador" class="ship-part" data-comp="microcontrolador">
+                  <g transform="translate(42, 344)">
+                    <path d="M8 18 L94 18 L82 34 L18 34 Z" fill="#f8fafc" stroke="#dc2626" stroke-width="2" />
+                    <rect x="27" y="8" width="24" height="10" rx="2" fill="#0284c7" stroke="#bae6fd" stroke-width="1.2" />
+                    <rect x="8" y="12" width="10" height="12" rx="2" fill="#334155" stroke="#94a3b8" stroke-width="1" />
+                    <text x="51" y="5" text-anchor="middle" fill="#7dd3fc" font-size="8.5" font-family="JetBrains Mono" font-weight="bold">MCU (BOTE)</text>
+                  </g>
+                </g>
+
+              </g>
+
+              <!-- Ondas Animadas do Mar -->
+              <g class="wave-back" opacity="0.65">
+                <path d="M-30 372 Q35 356 100 372 T230 372 T360 372 T490 372 T620 372 T750 372 T880 372 V445 H-30 Z" fill="#0369a1" />
+              </g>
+              <g class="wave-front" opacity="0.9">
+                <path d="M-30 384 Q45 368 120 384 T270 384 T420 384 T570 384 T720 384 T870 384 V445 H-30 Z" fill="#0284c7" />
+                <path d="M-20 402 Q60 390 140 402 T300 402 T460 402 T620 402 T780 402 T900 402 V445 H-20 Z" fill="#0c4a6e" />
+              </g>
+            </svg>
+          </div>
+
+          <!-- Legenda das Categorias no Estaleiro -->
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 border-t border-sky-400/20 pt-3">
+            <div class="flex flex-wrap items-center gap-4">
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-red-500 inline-block"></span> Processamento (7)</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-[#f4c95d] inline-block"></span> Memórias (6)</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-sky-400 inline-block"></span> Comunicação (3)</span>
+            </div>
+            <span class="font-mono-tech text-[11px] text-sky-300/85">Sem limite de tempo</span>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ===================================================================
+           COLUNA DIREITA: Bancada do Carpinteiro (Filtros, Inspeção & 16 Cards)
+           =================================================================== -->
+      <section class="bg-[#0b162c]/95 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-4">
+
+        <!-- Título da Bancada + Abas de Filtro por Categoria -->
+        <div class="flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="font-pirate text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+              <span>🧰 Bancada do Carpinteiro</span>
+            </h2>
+            <span class="text-xs text-slate-400">
+              Clique para inspecionar • Duplo clique instala direto
+            </span>
+          </div>
+
+          <!-- Abas de Filtro -->
+          <div id="filterTabs" class="flex flex-wrap gap-2">
+            <button type="button" data-filter="all" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-bold border transition bg-[#f4c95d] text-slate-950 border-amber-300 shadow-sm">
+              Todas (16)
+            </button>
+            <button type="button" data-filter="processamento" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold border transition bg-[#060d1a] text-slate-300 border-slate-700 hover:border-red-400/60">
+              ⚙️ Processamento (7)
+            </button>
+            <button type="button" data-filter="memoria" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold border transition bg-[#060d1a] text-slate-300 border-slate-700 hover:border-amber-400/60">
+              💾 Memórias (6)
+            </button>
+            <button type="button" data-filter="barramento" class="filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold border transition bg-[#060d1a] text-slate-300 border-slate-700 hover:border-sky-400/60">
+              🔌 Comunicação (3)
+            </button>
+          </div>
+        </div>
+
+        <!-- Painel de Inspeção Didática em Destaque -->
+        <div id="didacticPanel" class="bg-gradient-to-br from-[#060d1a] to-[#0c1d3a] border border-sky-400/35 rounded-2xl p-4 sm:p-5 shadow-inner flex flex-col gap-3.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span id="didacticCategory" class="text-[11px] font-mono-tech uppercase tracking-wider px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-400/30">
+              Inspeção Didática
+            </span>
+            <span id="didacticStatus" class="text-xs font-semibold text-slate-400">
+              Selecione uma peça abaixo
+            </span>
+          </div>
+
+          <div>
+            <h3 id="didacticTitle" class="text-base sm:text-lg font-bold text-white">
+              Toque em qualquer componente da bancada para estudar sua função
+            </h3>
+            <p id="didacticAnalogySubtitle" class="text-xs sm:text-sm font-semibold text-[#f4c95d] mt-1">
+              ⚓ Analogia no Moby Dick: —
+            </p>
+          </div>
+
+          <!-- Explicação Didática Clara Conectando Hardware ao Navio -->
+          <div class="bg-[#0b162c]/90 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs sm:text-sm leading-relaxed">
+            <p id="didacticNauticalDesc" class="text-slate-200">
+              Cada peça abaixo representa uma estrutura essencial do Moby Dick e do funcionamento de um computador. Escolha uma peça na grade para ler sua analogia náutica e instalá-la no navio.
+            </p>
+            <p id="didacticTechDesc" class="text-sky-200/90 border-t border-slate-800 pt-2 hidden"></p>
+          </div>
+
+          <!-- Botão Grande "Instalar no Moby Dick" -->
+          <button id="btnInstallComponent" type="button" disabled class="w-full py-3 px-5 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 bg-slate-800 text-slate-500 cursor-not-allowed">
+            <span>🔨</span>
+            <span id="btnInstallLabel">Selecione uma peça para instalar</span>
+          </button>
+        </div>
+
+        <!-- Grade Confortável com os 16 Cards das Peças -->
+        <div id="componentsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Cards renderizados via JavaScript -->
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal de Vitória (Moby Dick 100% Concluído!) -->
+  <div id="victoryModal" class="fixed inset-0 z-50 bg-[#060d1a]/88 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="max-w-xl w-full bg-[#0b162c] border-2 border-[#f4c95d] rounded-2xl p-6 sm:p-7 shadow-[0_0_65px_rgba(244,201,93,0.35)] text-center relative">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-3">
+        <span>🏴‍☠️ Construção Concluída!</span>
+      </div>
+      <h2 class="font-pirate text-2xl sm:text-3xl font-bold text-[#f4c95d] mb-2">
+        O Novo Moby Dick Está Pronto para Zarpar!
+      </h2>
+      <p class="text-slate-200 text-sm sm:text-base leading-relaxed mb-5">
+        Parabéns, Carpinteiro Aprendiz! Você montou todas as <strong>16 estruturas</strong> do navio do Barba Branca e conectou na prática os conceitos de Processamento, Memórias e Comunicação.
+      </p>
+
+      <!-- Resumo de Desempenho -->
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="bg-[#060d1a] border border-slate-800 rounded-xl p-3.5">
+          <span class="text-xs text-slate-400 block mb-0.5">Peças</span>
+          <span class="text-lg sm:text-xl font-bold text-emerald-400 font-mono-tech">16 / 16</span>
+        </div>
+        <div class="bg-[#060d1a] border border-slate-800 rounded-xl p-3.5">
+          <span class="text-xs text-slate-400 block mb-0.5">De Primeira</span>
+          <span id="statFirstTry" class="text-lg sm:text-xl font-bold text-[#f4c95d] font-mono-tech">16 / 16</span>
+        </div>
+        <div class="bg-[#060d1a] border border-slate-800 rounded-xl p-3.5">
+          <span class="text-xs text-slate-400 block mb-0.5">Terremotos</span>
+          <span id="statTremors" class="text-lg sm:text-xl font-bold text-red-400 font-mono-tech">0</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <button id="btnVictoryGuide" type="button" class="px-5 py-3 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-sm transition flex items-center justify-center gap-2">
+          <span>📖</span>
+          <span>Abrir Guia Naval (16)</span>
+        </button>
+        <button id="btnVictoryRestart" type="button" class="px-5 py-3 rounded-xl bg-[#f4c95d] hover:bg-amber-300 text-slate-950 font-bold text-sm transition flex items-center justify-center gap-2">
+          <span>↺</span>
+          <span>Jogar Novamente</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Guia Naval (16 Conceitos Organizados por Categoria) -->
+  <div id="guideModal" class="fixed inset-0 z-50 bg-[#060d1a]/88 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6">
+    <div class="max-w-4xl w-full max-h-[88vh] bg-[#0b162c] border border-sky-400/40 rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 bg-[#060d1a] border-b border-slate-800 flex items-center justify-between gap-3">
+        <div>
+          <h2 class="font-pirate text-lg sm:text-xl font-bold text-[#f4c95d]">
+            📖 Guia Naval • Os 16 Conceitos de Arquitetura
+          </h2>
+          <p class="text-xs text-slate-400">
+            Consulte as analogias do Moby Dick organizadas por Processamento, Memórias e Comunicação
+          </p>
+        </div>
+        <button id="btnCloseGuide" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-semibold transition">
+          ✕ Fechar
+        </button>
+      </div>
+      <div id="guideContent" class="p-4 sm:p-6 overflow-y-auto space-y-6">
+        <!-- Preenchido via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * =========================================================================
+     * OS 16 COMPONENTES & ETAPAS COM PISTAS SIMPLES E CONCEITUAIS
+     * =========================================================================
+     */
+    const COMPONENTS = [
+      {
+        id: 'massa',
+        step: 1,
+        category: 'memoria',
+        categoryLabel: 'Memórias e Armazenamento',
+        zone: 'Setor 1: Fundo do Casco',
+        name: 'Memória de Massa (Armazenamento)',
+        shortName: 'Memória de Massa',
+        analogyTitle: 'Porão de Carga e Arquivo Geral',
+        icon: '📦',
+        missionPrompt:
+          'Para começar o navio, precisamos de um espaço gigante no fundo do casco para guardar cargas pesadas, mapas antigos e registros de anos, mesmo que demore para ir buscar algo lá.',
+        hint:
+          'Pense no maior depósito do navio: guarda muita coisa por muito tempo, mas o acesso é lento.',
+        nauticalDesc:
+          'É o Porão de Carga e o Arquivo Geral: tem espaço gigante para guardar todas as mercadorias, mapas antigos e registros de anos, mas demora bastante para alguém ir lá buscar algo.',
+        techDesc:
+          'Armazenamento permanente de alta capacidade (como HD ou SSD). Mantém arquivos e programas salvos mesmo quando o computador é desligado, mas tem acesso mais lento.'
+      },
+      {
+        id: 'databus',
+        step: 2,
+        category: 'barramento',
+        categoryLabel: 'Comunicação e Transporte',
+        zone: 'Setor 2: Rotas Internas',
+        name: 'Data Bus (Barramento de Dados)',
+        shortName: 'Data Bus',
+        analogyTitle: 'Corredores, Escadas e Elevadores de Carga',
+        icon: '🪜',
+        missionPrompt:
+          'Com o porão pronto, precisamos construir os caminhos físicos — corredores, escadas e elevadores — por onde os marinheiros vão carregar suprimentos e mapas de um setor para outro.',
+        hint:
+          'É o caminho por onde a carga e as informações realmente trafegam de um lugar para outro no navio.',
+        nauticalDesc:
+          'São os Corredores, Escadas e Elevadores de Carga do navio: o caminho físico por onde os marinheiros transportam os mapas, suprimentos e mensagens de um setor para outro.',
+        techDesc:
+          'Conjunto de trilhas físicas por onde os dados realmente circulam entre o processador, a memória e os demais dispositivos.'
+      },
+      {
+        id: 'addressbus',
+        step: 3,
+        category: 'barramento',
+        categoryLabel: 'Comunicação e Transporte',
+        zone: 'Setor 3: Localização de Carga',
+        name: 'Address Bus (Barramento de Endereço)',
+        shortName: 'Address Bus',
+        analogyTitle: 'Tubos Acústicos / Interfone de Localização',
+        icon: '📯',
+        missionPrompt:
+          'Os marinheiros já têm por onde andar, mas precisam saber exatamente onde buscar cada item. Instale o sistema de comunicação usado para avisar a localização exata de uma carga (ex: "prateleira 4").',
+        hint:
+          'Não transporta a carga em si, apenas aponta o endereço exato onde ela está guardada.',
+        nauticalDesc:
+          'É o Sistema de Tubos Acústicos ou Interfone de Localização usado pelo Comandante para dizer onde buscar algo (ex: "Vá até a prateleira 4 do porão").',
+        techDesc:
+          'Canal usado pelo processador para indicar o endereço exato da memória onde uma informação deve ser lida ou gravada.'
+      },
+      {
+        id: 'ram',
+        step: 4,
+        category: 'memoria',
+        categoryLabel: 'Memórias e Armazenamento',
+        zone: 'Setor 4: Convés de Operações',
+        name: 'RAM (Random Access Memory)',
+        shortName: 'RAM',
+        analogyTitle: 'Mesa de Cartas Náuticas Aberta',
+        icon: '🗺️',
+        missionPrompt:
+          'Agora precisamos de uma superfície ampla onde os mapas e planos da viagem atual fiquem abertos para consulta rápida — mas que fica totalmente vazia quando a viagem acaba e o navio é desligado.',
+        hint:
+          'É uma memória rápida usada só enquanto o navio está ativo; desligou, tudo nela é guardado e ela esvazia.',
+        nauticalDesc:
+          'É a Mesa de Cartas Náuticas Aberta: onde os mapas e planos da viagem atual ficam estendidos para consulta rápida, mas tudo é guardado e a mesa fica vazia quando a viagem acaba.',
+        techDesc:
+          'Memória principal de trabalho onde ficam os dados e programas em uso no momento. É rápida, mas volátil (apaga tudo ao desligar).'
+      },
+      {
+        id: 'dma',
+        step: 5,
+        category: 'barramento',
+        categoryLabel: 'Comunicação e Transporte',
+        zone: 'Setor 5: Logística Direta',
+        name: 'DMA (Acesso Direto à Memória)',
+        shortName: 'DMA',
+        analogyTitle: 'Contramestre com Autonomia de Carga',
+        icon: '🏗️',
+        missionPrompt:
+          'Mover caixas pesadas do porão até a mesa de mapas cansa e atrasa a liderança. Precisamos de um oficial com autonomia para fazer esse transporte pesado direto, sem incomodar o comando a cada caixa.',
+        hint:
+          'Ele faz a ponte direta entre o depósito pesado e a mesa de trabalho, poupando o cérebro do navio.',
+        nauticalDesc:
+          'É o Contramestre com Autonomia de Carga: transfere suprimentos pesados direto do porão (Memória de Massa) para a mesa de operações (RAM) sem precisar incomodar o Comandante (CPU).',
+        techDesc:
+          'Recurso que permite transferir grandes blocos de dados diretamente entre o armazenamento e a memória RAM sem ocupar o processador a cada passo.'
+      },
+      {
+        id: 'rom',
+        step: 6,
+        category: 'memoria',
+        categoryLabel: 'Memórias e Armazenamento',
+        zone: 'Setor 6: Antepara de Fábrica',
+        name: 'ROM (Read-Only Memory)',
+        shortName: 'ROM',
+        analogyTitle: 'Placa de Bronze Fixada na Parede',
+        icon: '🛡️',
+        missionPrompt:
+          'Todo grande navio precisa das regras básicas de segurança e do manual de fábrica gravados permanentemente, sem que ninguém possa apagar ou escrever por cima.',
+        hint:
+          'É uma memória permanente que vem gravada de fábrica e serve apenas para leitura.',
+        nauticalDesc:
+          'É a Placa de Bronze Fixada na Parede com as regras básicas de segurança e o manual de fábrica do navio. Ninguém pode apagar ou escrever por cima dela.',
+        techDesc:
+          'Memória somente de leitura gravada de fábrica. Guarda instruções essenciais de inicialização que nunca se apagam.'
+      },
+      {
+        id: 'eeprom',
+        step: 7,
+        category: 'memoria',
+        categoryLabel: 'Memórias e Armazenamento',
+        zone: 'Setor 7: Oficina de Precisão',
+        name: 'EEPROM',
+        shortName: 'EEPROM',
+        analogyTitle: 'Livro de Registro de Calibração',
+        icon: '🔧',
+        missionPrompt:
+          'Os instrumentos náuticos precisam de ajustes finos de tempos em tempos. Instale o registro especial que pode ser regravado com ferramentas próprias sem precisar trocar a peça inteira.',
+        hint:
+          'Diferente da placa fixa, este registro permanente permite apagar e atualizar configurações específicas com ferramentas especiais.',
+        nauticalDesc:
+          'É o Livro de Registro de Calibração dos Instrumentos: pode ser alterado com ferramentas especiais para atualizar ajustes finos do navio sem precisar trocar a peça inteira.',
+        techDesc:
+          'Memória não-volátil que guarda ajustes finos do sistema e pode ser regravada eletricamente sem precisar substituir o chip.'
+      },
+      {
+        id: 'flash',
+        step: 8,
+        category: 'memoria',
+        categoryLabel: 'Memórias e Armazenamento',
+        zone: 'Setor 8: Registro Moderno',
+        name: 'Memória Flash',
+        shortName: 'Memória Flash',
+        analogyTitle: 'Diário de Bordo Digital / Fichário Moderno',
+        icon: '📔',
+        missionPrompt:
+          'Precisamos de um registro moderno onde seja rápido apagar páginas antigas e anotar novas rotas, mantendo tudo salvo mesmo quando o navio atraca e desliga os motores.',
+        hint:
+          'É rápida para gravar e apagar blocos de informação e não perde os dados quando fica sem energia.',
+        nauticalDesc:
+          'É o Diário de Bordo Digital ou Fichário Moderno: permite apagar páginas antigas e escrever novos registros de forma rápida, mantendo tudo salvo mesmo quando o navio atraca.',
+        techDesc:
+          'Memória não-volátil ágil que permite apagar e regravar dados eletronicamente com rapidez (presente em pendrives, cartões e SSDs).'
+      },
+      {
+        id: 'cpu',
+        step: 9,
+        category: 'processamento',
+        categoryLabel: 'Processamento',
+        zone: 'Setor 9: Centro Nervoso',
+        name: 'CPU (Unidade Central de Processamento)',
+        shortName: 'CPU',
+        analogyTitle: 'Passadiço (Ponte de Comando)',
+        icon: '🧭',
+        missionPrompt:
+          'Agora vamos erguer o centro nervoso no alto do navio: o local principal onde todas as decisões e operações da viagem são gerenciadas.',
+        hint:
+          'É o cérebro central do navio, onde ficam o comando e os cálculos principais.',
+        nauticalDesc:
+          'É o Passadiço (Ponte de Comando) com o Comandante, navegador e sua prancheta: o centro nervoso onde todas as decisões e operações da viagem são gerenciadas.',
+        techDesc:
+          'O "cérebro" do computador: unidade central responsável por interpretar instruções, coordenar tarefas e processar dados.'
+      },
+      {
+        id: 'uc',
+        step: 10,
+        category: 'processamento',
+        categoryLabel: 'Processamento',
+        zone: 'Setor 10: Liderança',
+        name: 'UC (Unidade de Controle)',
+        shortName: 'UC (Unidade de Controle)',
+        analogyTitle: 'Comandante (Capitão)',
+        icon: '👨‍✈️',
+        missionPrompt:
+          'Dentro da ponte de comando, precisamos de quem lê o plano de viagem, coordena a tripulação e dá ordens na hora certa — sem precisar fazer contas nem virar o leme sozinho.',
+        hint:
+          'Ele não executa os cálculos matemáticos; seu papel é orquestrar e dar ordens para cada setor agir no momento certo.',
+        nauticalDesc:
+          'É o Comandante (Capitão): não faz as contas nem vira o leme sozinho, mas lê o plano de viagem, coordena a tripulação e dá ordens para cada setor agir na hora certa.',
+        techDesc:
+          'Componente interno da CPU que busca e interpreta instruções, enviando sinais de controle para coordenar todo o hardware.'
+      },
+      {
+        id: 'ula',
+        step: 11,
+        category: 'processamento',
+        categoryLabel: 'Processamento',
+        zone: 'Setor 11: Estação de Cálculo',
+        name: 'ULA (Unidade Lógica e Aritmética)',
+        shortName: 'ULA (Unidade Lógica e Aritmética)',
+        analogyTitle: 'Navegador (Oficial de Derrota)',
+        icon: '📐',
+        missionPrompt:
+          'Ao lado do capitão, precisamos do especialista com réguas, compassos e sextante que faz todos os cálculos de rota, velocidade, consumo e compara posições.',
+        hint:
+          'É o responsável por todas as contas matemáticas e comparações lógicas da viagem.',
+        nauticalDesc:
+          'É o Navegador (Oficial de Derrota) com suas réguas, compassos e sextante: faz todos os cálculos de rota, velocidade, consumo de combustível e compara posições.',
+        techDesc:
+          'Circuito interno da CPU responsável por realizar todas as operações matemáticas (adição, subtração) e comparações lógicas.'
+      },
+      {
+        id: 'registradores',
+        step: 12,
+        category: 'processamento',
+        categoryLabel: 'Processamento',
+        zone: 'Setor 12: Acesso Instantâneo',
+        name: 'Registradores',
+        shortName: 'Registradores',
+        analogyTitle: 'Anotações na Mão / Prancheta do Comandante',
+        icon: '📋',
+        missionPrompt:
+          'Durante uma manobra crítica, não dá tempo de olhar nem para a parede. Precisamos de um espaço minúsculo na própria mão do comando para anotar o rumo atual com acesso instantâneo.',
+        hint:
+          'Guarda pouquíssima informação, mas é o local de acesso mais rápido de todo o navio.',
+        nauticalDesc:
+          'São as Anotações na Mão ou na Prancheta do Comandante: guardam pouquíssima informação (como o rumo atual ou a velocidade exata), mas o acesso é instantâneo.',
+        techDesc:
+          'Pequeníssimas células de memória dentro da própria CPU que guardam dados em uso imediato com velocidade máxima.'
+      },
+      {
+        id: 'cache',
+        step: 13,
+        category: 'memoria',
+        categoryLabel: 'Memórias e Armazenamento',
+        zone: 'Setor 13: Parede do Passadiço',
+        name: 'Memória Cache',
+        shortName: 'Cache',
+        analogyTitle: 'Quadro de Avisos na Parede do Passadiço',
+        icon: '📌',
+        missionPrompt:
+          'Para evitar descer toda hora até a biblioteca ou à mesa de mapas, coloque um quadro bem na parede da ponte de comando com os dados mais usados no momento.',
+        hint:
+          'Fica colado ao cérebro do navio para deixar à mão as informações mais repetidas, acelerando o trabalho.',
+        nauticalDesc:
+          'É o Quadro de Avisos na Parede do Passadiço: fica bem ao lado do Comandante com os dados mais usados no momento para evitar que alguém precise descer até a biblioteca.',
+        techDesc:
+          'Memória ultrarrápida integrada ao processador que armazena cópias dos dados mais acessados recentemente.'
+      },
+      {
+        id: 'dualcore',
+        step: 14,
+        category: 'processamento',
+        categoryLabel: 'Processamento',
+        zone: 'Setor 14: Paralelismo Duplo',
+        name: 'Dual Core',
+        shortName: 'Dual Core',
+        analogyTitle: 'Duas Divisões de Comando Lado a Lado',
+        icon: '⚔️',
+        missionPrompt:
+          'O Moby Dick é gigante! Precisamos estruturar duas equipes completas de comando trabalhando lado a lado no mesmo navio para gerenciar duas manobras complexas ao mesmo tempo.',
+        hint:
+          'Significa ter dois núcleos completos de comando operando em paralelo no mesmo navio.',
+        nauticalDesc:
+          'É um navio com Duas divisões (cada uma com comandante, navegador e prancheta) trabalhando lado a lado para gerenciar 2 manobras complexas em paralelo.',
+        techDesc:
+          'Processador com dois núcleos completos trabalhando lado a lado no mesmo chip para executar duas tarefas simultaneamente.'
+      },
+      {
+        id: 'quadcore',
+        step: 15,
+        category: 'processamento',
+        categoryLabel: 'Processamento',
+        zone: 'Setor 15: Força Máxima do Moby Dick',
+        name: 'Quad Core',
+        shortName: 'Quad Core',
+        analogyTitle: 'Quatro Divisões de Comando Lado a Lado',
+        icon: '🏴‍☠️',
+        missionPrompt:
+          'Para encarar os mares mais perigosos do Novo Mundo, vamos expandir ainda mais: quatro divisões completas de comando trabalhando simultaneamente no mesmo navio.',
+        hint:
+          'São quatro núcleos completos de processamento atuando lado a lado para multiplicar a capacidade de manobras simultâneas.',
+        nauticalDesc:
+          'É um navio com 4 divisões (cada uma com comandante, navegador e prancheta) trabalhando lado a lado para gerenciar quatro manobras complexas em paralelo.',
+        techDesc:
+          'Processador com quatro núcleos independentes atuando em paralelo no mesmo chip, ampliando a capacidade multitarefa.'
+      },
+      {
+        id: 'microcontrolador',
+        step: 16,
+        category: 'processamento',
+        categoryLabel: 'Processamento',
+        zone: 'Setor 16: Unidade Auxiliar Autônoma',
+        name: 'Microcontrolador',
+        shortName: 'Microcontrolador',
+        analogyTitle: 'Bote Salva-Vidas Motorizado Autônomo',
+        icon: '🚤',
+        missionPrompt:
+          'Para finalizar a frota do Moby Dick, acople uma embarcação compacta de apoio que já vem com painel de controle, motor e tanque próprios integrados para cumprir missões específicas sozinha.',
+        hint:
+          'É um pequeno sistema completo e integrado em uma única estrutura compacta para tarefas dedicadas.',
+        nauticalDesc:
+          'É um Bote Salva-Vidas Motorizado ou Lancha Autônoma: tem um pequeno painel de controle, motor e tanque próprios integrados em uma única estrutura compacta.',
+        techDesc:
+          'Circuito integrado compacto ("computador em um único chip") que reúne CPU, memória e periféricos para tarefas dedicadas.'
+      }
+    ];
+
+    /**
+     * Ordem embaralhada equilibrada para exibição na Bancada do Carpinteiro
+     */
+    const BENCH_ORDER_IDS = [
+      'cpu', 'ram', 'databus', 'flash',
+      'ula', 'massa', 'quadcore', 'addressbus',
+      'rom', 'registradores', 'dma', 'cache',
+      'uc', 'eeprom', 'microcontrolador', 'dualcore'
+    ];
+
+    /**
+     * =========================================================================
+     * ESTADO DO JOGO
+     * =========================================================================
+     */
+    const state = {
+      currentStep: 1,               // 1 a 17 (17 = obra concluída)
+      installedIds: new Set(),      // IDs já instalados
+      selectedId: null,             // ID atualmente selecionado na bancada
+      activeFilter: 'all',          // 'all' | 'processamento' | 'memoria' | 'barramento'
+      soundEnabled: true,
+      tremorCount: 0,
+      firstTrySteps: new Set(),
+      hadErrorInCurrentStep: false
+    };
+
+    /**
+     * =========================================================================
+     * ÁUDIO SINTETIZADO (WEB AUDIO API)
+     * =========================================================================
+     */
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      if (!state.soundEnabled) return;
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+
+      if (type === 'select') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(500, now);
+        osc.frequency.exponentialRampToValueAtTime(320, now + 0.06);
+        gain.gain.setValueAtTime(0.11, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.07);
+      } else if (type === 'install') {
+        const notes = [392.0, 493.88, 587.33];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.055);
+          gain.gain.setValueAtTime(0.14, now + idx * 0.055);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.055 + 0.28);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.055);
+          osc.stop(now + idx * 0.055 + 0.3);
+        });
+      } else if (type === 'quake') {
+        // Som grave sísmico + estilhaçar do ar (Gura Gura no Mi)
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(108, now);
+        osc.frequency.exponentialRampToValueAtTime(34, now + 0.68);
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.72);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.75);
+
+        const bufferSize = ctx.sampleRate * 0.35;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.12));
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1750, now);
+        const nGain = ctx.createGain();
+        nGain.gain.setValueAtTime(0.22, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        noise.connect(filter);
+        filter.connect(nGain);
+        nGain.connect(ctx.destination);
+        noise.start(now);
+      } else if (type === 'victory') {
+        const fanfare = [392.0, 493.88, 587.33, 783.99];
+        fanfare.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+          gain.gain.setValueAtTime(0.18, now + idx * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.55);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.12);
+          osc.stop(now + idx * 0.12 + 0.6);
+        });
+      }
+    }
+
+    /**
+     * =========================================================================
+     * REFERÊNCIAS DO DOM
+     * =========================================================================
+     */
+    const elAppContainer = document.getElementById('appContainer');
+    const elQuakeOverlay = document.getElementById('quakeOverlay');
+    const elQuakeWrongMsg = document.getElementById('quakeWrongMsg');
+    const elQuakeHintText = document.getElementById('quakeHintText');
+    const elToastBanner = document.getElementById('toastBanner');
+    const elToastText = document.getElementById('toastText');
+
+    const elHeaderStageCounter = document.getElementById('headerStageCounter');
+    const elHeaderTremorCount = document.getElementById('headerTremorCount');
+    const elProgressBar = document.getElementById('progressBar');
+    const elProgressPercent = document.getElementById('progressPercent');
+    const elShipHoverLabel = document.getElementById('shipHoverLabel');
+    const elMobyShipGroup = document.getElementById('mobyShipGroup');
+
+    const elStepBadge = document.getElementById('stepBadge');
+    const elStepZoneBadge = document.getElementById('stepZoneBadge');
+    const elMissionTitle = document.getElementById('missionTitle');
+    const elMissionPrompt = document.getElementById('missionPrompt');
+    const elPersistentHintBox = document.getElementById('persistentHintBox');
+    const elPersistentHintText = document.getElementById('persistentHintText');
+
+    const elDidacticCategory = document.getElementById('didacticCategory');
+    const elDidacticStatus = document.getElementById('didacticStatus');
+    const elDidacticTitle = document.getElementById('didacticTitle');
+    const elDidacticAnalogySubtitle = document.getElementById('didacticAnalogySubtitle');
+    const elDidacticNauticalDesc = document.getElementById('didacticNauticalDesc');
+    const elDidacticTechDesc = document.getElementById('didacticTechDesc');
+    const elBtnInstall = document.getElementById('btnInstallComponent');
+    const elBtnInstallLabel = document.getElementById('btnInstallLabel');
+
+    const elComponentsGrid = document.getElementById('componentsGrid');
+    const elVictoryModal = document.getElementById('victoryModal');
+    const elGuideModal = document.getElementById('guideModal');
+    const elGuideContent = document.getElementById('guideContent');
+
+    /**
+     * =========================================================================
+     * FUNÇÕES DE RENDERIZAÇÃO E ATUALIZAÇÃO
+     * =========================================================================
+     */
+    function getComponentById(id) {
+      return COMPONENTS.find(c => c.id === id);
+    }
+
+    function getCurrentTargetComponent() {
+      return COMPONENTS.find(c => c.step === state.currentStep) || null;
+    }
+
+    function getCategoryBadgeClasses(category) {
+      if (category === 'memoria') {
+        return 'bg-amber-400/15 text-[#f4c95d] border-amber-400/35';
+      }
+      if (category === 'barramento') {
+        return 'bg-sky-400/15 text-sky-300 border-sky-400/35';
+      }
+      return 'bg-red-500/15 text-red-300 border-red-500/35';
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      elToastText.textContent = msg;
+      elToastBanner.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        elToastBanner.classList.add('hidden');
+      }, 2200);
+    }
+
+    /**
+     * Atualiza o Card da Missão Atual & Progresso
+     */
+    function renderMissionPanel() {
+      const target = getCurrentTargetComponent();
+      const installedCount = state.installedIds.size;
+      const percent = Math.round((installedCount / 16) * 100);
+
+      elProgressBar.style.width = `${percent}%`;
+      elProgressPercent.textContent = `${percent}%`;
+      elHeaderTremorCount.textContent = `${state.tremorCount}`;
+
+      if (!target) {
+        elHeaderStageCounter.textContent = '16 / 16';
+        elStepBadge.textContent = 'CONCLUÍDO • 16 / 16';
+        elStepBadge.className = 'px-3 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/45 text-emerald-300 font-mono-tech text-xs font-bold';
+        elStepZoneBadge.textContent = 'Moby Dick 100% Pronto';
+        elMissionTitle.textContent = 'Navio Completo e Pronto para Zarpar!';
+        elMissionPrompt.textContent =
+          'Todas as 16 estruturas do Moby Dick foram instaladas! Clique em qualquer peça no navio ou na bancada para revisar os conceitos.';
+        elPersistentHintBox.classList.add('hidden');
+        return;
+      }
+
+      elHeaderStageCounter.textContent = `${target.step} / 16`;
+      elStepBadge.textContent = `ETAPA ${target.step} / 16`;
+      elStepBadge.className = 'px-3 py-1 rounded-lg bg-amber-400/15 border border-amber-400/40 text-[#f4c95d] font-mono-tech text-xs font-bold';
+      elStepZoneBadge.textContent = target.zone;
+      elMissionTitle.textContent = 'Pedido do Estaleiro';
+      elMissionPrompt.textContent = target.missionPrompt;
+
+      if (state.hadErrorInCurrentStep) {
+        elPersistentHintBox.classList.remove('hidden');
+        elPersistentHintText.textContent = target.hint;
+      } else {
+        elPersistentHintBox.classList.add('hidden');
+      }
+    }
+
+    /**
+     * Atualiza o Painel de Inspeção Didática
+     */
+    function renderDidacticPanel() {
+      const comp = getComponentById(state.selectedId);
+
+      if (!comp) {
+        elDidacticCategory.textContent = 'Inspeção Didática';
+        elDidacticCategory.className = 'text-[11px] font-mono-tech uppercase tracking-wider px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-400/30';
+        elDidacticStatus.textContent = 'Selecione uma peça abaixo';
+        elDidacticStatus.className = 'text-xs font-semibold text-slate-400';
+        elDidacticTitle.textContent = 'Toque em qualquer componente da bancada para estudar sua função';
+        elDidacticAnalogySubtitle.textContent = '⚓ Analogia no Moby Dick: —';
+        elDidacticNauticalDesc.textContent =
+          'Cada peça abaixo representa uma estrutura essencial do Moby Dick e do funcionamento de um computador. Escolha uma peça na grade para ler sua analogia náutica e instalá-la no navio.';
+        elDidacticTechDesc.classList.add('hidden');
+
+        elBtnInstall.disabled = true;
+        elBtnInstall.className = 'w-full py-3 px-5 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 bg-slate-800 text-slate-500 cursor-not-allowed';
+        elBtnInstallLabel.textContent = 'Selecione uma peça para instalar';
+        return;
+      }
+
+      const isInstalled = state.installedIds.has(comp.id);
+      const isGameFinished = state.currentStep > 16;
+
+      elDidacticCategory.textContent = comp.categoryLabel;
+      elDidacticCategory.className = `text-[11px] font-mono-tech uppercase tracking-wider px-2.5 py-1 rounded-lg border ${getCategoryBadgeClasses(comp.category)}`;
+
+      if (isInstalled) {
+        elDidacticStatus.textContent = `✔ Instalado na Etapa ${comp.step}`;
+        elDidacticStatus.className = 'text-xs font-bold text-emerald-400';
+      } else {
+        elDidacticStatus.textContent = '🧰 Disponível na Bancada';
+        elDidacticStatus.className = 'text-xs font-semibold text-[#f4c95d]';
+      }
+
+      elDidacticTitle.textContent = `${comp.icon} ${comp.name}`;
+      elDidacticAnalogySubtitle.textContent = `⚓ Analogia no Moby Dick: ${comp.analogyTitle}`;
+      elDidacticNauticalDesc.textContent = comp.nauticalDesc;
+      elDidacticTechDesc.innerHTML = `<strong class="text-sky-300">Na Arquitetura de Computadores:</strong> ${comp.techDesc}`;
+      elDidacticTechDesc.classList.remove('hidden');
+
+      if (isInstalled || isGameFinished) {
+        elBtnInstall.disabled = true;
+        elBtnInstall.className = 'w-full py-3 px-5 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 bg-emerald-950/80 border border-emerald-500/45 text-emerald-300 cursor-default';
+        elBtnInstallLabel.textContent = '✔ Peça já instalada no Moby Dick';
+      } else {
+        elBtnInstall.disabled = false;
+        elBtnInstall.className = 'w-full py-3 px-5 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 bg-gradient-to-r from-[#f4c95d] to-amber-400 hover:from-amber-300 hover:to-yellow-200 text-slate-950 shadow-lg shadow-amber-500/20 cursor-pointer active:scale-[0.99]';
+        elBtnInstallLabel.textContent = `Instalar no Moby Dick (Etapa ${state.currentStep})`;
+      }
+    }
+
+    /**
+     * Renderiza as Abas de Filtro e a Grade Confortável de Peças
+     */
+    function renderFilterTabs() {
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        const filterVal = tab.dataset.filter;
+        if (filterVal === state.activeFilter) {
+          tab.className = 'filter-tab px-3.5 py-2 rounded-xl text-xs font-bold border transition bg-[#f4c95d] text-slate-950 border-amber-300 shadow-sm';
+        } else {
+          tab.className = 'filter-tab px-3.5 py-2 rounded-xl text-xs font-semibold border transition bg-[#060d1a] text-slate-300 border-slate-700 hover:border-sky-400/50';
+        }
+      });
+    }
+
+    function renderWorkbench() {
+      elComponentsGrid.innerHTML = '';
+
+      const orderedComponents = BENCH_ORDER_IDS
+        .map(id => getComponentById(id))
+        .filter(comp => state.activeFilter === 'all' || comp.category === state.activeFilter);
+
+      orderedComponents.forEach(comp => {
+        const isInstalled = state.installedIds.has(comp.id);
+        const isSelected = state.selectedId === comp.id;
+
+        const card = document.createElement('button');
+        card.type = 'button';
+
+        let cardStyle = 'bg-[#060d1a]/90 hover:bg-slate-800/90 border-slate-700/85 text-slate-200';
+        if (isSelected && isInstalled) {
+          cardStyle = 'bg-emerald-950/60 border-emerald-400 ring-2 ring-emerald-400/40 text-white';
+        } else if (isSelected) {
+          cardStyle = 'bg-sky-950/75 border-[#f4c95d] ring-2 ring-amber-400/50 text-white';
+        } else if (isInstalled) {
+          cardStyle = 'bg-emerald-950/25 border-emerald-500/45 text-slate-300';
+        }
+
+        card.className = `p-3.5 rounded-xl border text-left transition flex flex-col justify-between gap-2 group ${cardStyle}`;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2 w-full">
+            <div class="flex items-center gap-2">
+              <span class="text-xl leading-none">${comp.icon}</span>
+              <span class="text-[10px] font-mono-tech uppercase px-2 py-0.5 rounded border ${getCategoryBadgeClasses(comp.category)}">
+                ${comp.category === 'memoria' ? 'Memória' : comp.category === 'barramento' ? 'Comunicação' : 'Processamento'}
+              </span>
+            </div>
+            ${
+              isInstalled
+                ? `<span class="text-[11px] font-mono-tech font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-400/45">✔ #${comp.step}</span>`
+                : ''
+            }
+          </div>
+          <div>
+            <div class="font-bold text-sm text-white group-hover:text-[#f4c95d] transition leading-snug">
+              ${comp.shortName}
+            </div>
+            <div class="text-xs text-slate-400 leading-snug mt-0.5">
+              ⚓ ${comp.analogyTitle}
+            </div>
+          </div>
+        `;
+
+        // Clique único: inspeciona no painel didático
+        card.addEventListener('click', () => {
+          state.selectedId = comp.id;
+          playSound('select');
+          renderWorkbench();
+          renderDidacticPanel();
+        });
+
+        // Duplo clique: seleciona e instala diretamente
+        card.addEventListener('dblclick', () => {
+          state.selectedId = comp.id;
+          renderWorkbench();
+          renderDidacticPanel();
+          handleInstallAttempt();
+        });
+
+        elComponentsGrid.appendChild(card);
+      });
+    }
+
+    /**
+     * Atualiza o SVG Progressivo do Moby Dick
+     */
+    function renderShipSvg() {
+      COMPONENTS.forEach(comp => {
+        const partEl = document.getElementById(`part-${comp.id}`);
+        if (!partEl) return;
+
+        if (state.installedIds.has(comp.id)) {
+          partEl.classList.add('installed');
+        } else {
+          partEl.classList.remove('installed');
+        }
+      });
+
+      if (state.installedIds.size === 16) {
+        elMobyShipGroup.classList.add('ship-sailing');
+      } else {
+        elMobyShipGroup.classList.remove('ship-sailing');
+      }
+    }
+
+    /**
+     * =========================================================================
+     * LÓGICA DE INSTALAÇÃO E TERREMOTO DO BARBA BRANCA (GURA GURA NO MI)
+     * =========================================================================
+     */
+    let quakeTimeout = null;
+
+    function triggerWhitebeardQuake(wrongComp, targetComp) {
+      state.tremorCount += 1;
+      state.hadErrorInCurrentStep = true;
+
+      playSound('quake');
+
+      elAppContainer.classList.remove('quake-active');
+      void elAppContainer.offsetWidth;
+      elAppContainer.classList.add('quake-active');
+
+      elQuakeWrongMsg.innerHTML = `Você tentou instalar <strong>${wrongComp.shortName}</strong> (${wrongComp.analogyTitle}), mas essa peça não é a pedida na <strong>Etapa ${targetComp.step}</strong>!`;
+      elQuakeHintText.textContent = targetComp.hint;
+
+      elQuakeOverlay.classList.remove('hidden', 'crack-overlay-anim');
+      void elQuakeOverlay.offsetWidth;
+      elQuakeOverlay.classList.add('crack-overlay-anim');
+
+      if (quakeTimeout) clearTimeout(quakeTimeout);
+      quakeTimeout = setTimeout(() => {
+        elQuakeOverlay.classList.add('hidden');
+        elAppContainer.classList.remove('quake-active');
+      }, 2250);
+
+      renderMissionPanel();
+    }
+
+    function handleInstallAttempt() {
+      const selectedComp = getComponentById(state.selectedId);
+      const targetComp = getCurrentTargetComponent();
+
+      if (!selectedComp || !targetComp) return;
+      if (state.installedIds.has(selectedComp.id)) return;
+
+      if (selectedComp.id === targetComp.id) {
+        state.installedIds.add(selectedComp.id);
+        if (!state.hadErrorInCurrentStep) {
+          state.firstTrySteps.add(selectedComp.step);
+        }
+
+        state.currentStep += 1;
+        state.hadErrorInCurrentStep = false;
+
+        playSound('install');
+        renderShipSvg();
+        renderMissionPanel();
+        renderWorkbench();
+        renderDidacticPanel();
+
+        if (state.currentStep > 16) {
+          setTimeout(() => {
+            playSound('victory');
+            document.getElementById('statFirstTry').textContent = `${state.firstTrySteps.size} / 16`;
+            document.getElementById('statTremors').textContent = `${state.tremorCount}`;
+            elVictoryModal.classList.remove('hidden');
+          }, 650);
+        }
+      } else {
+        triggerWhitebeardQuake(selectedComp, targetComp);
+      }
+    }
+
+    /**
+     * =========================================================================
+     * REINICIAR PARTIDA IMEDIATAMENTE DO ZERO
+     * =========================================================================
+     */
+    function resetGame() {
+      state.currentStep = 1;
+      state.installedIds.clear();
+      state.selectedId = null;
+      state.activeFilter = 'all';
+      state.tremorCount = 0;
+      state.firstTrySteps.clear();
+      state.hadErrorInCurrentStep = false;
+
+      elVictoryModal.classList.add('hidden');
+      elQuakeOverlay.classList.add('hidden');
+      elShipHoverLabel.textContent = 'Toque nas peças já instaladas para revisar';
+
+      renderShipSvg();
+      renderFilterTabs();
+      renderMissionPanel();
+      renderWorkbench();
+      renderDidacticPanel();
+      showToast('↺ Obra reiniciada! Etapa 1 / 16 pronta.');
+    }
+
+    /**
+     * =========================================================================
+     * POPULA O MODAL DE GUIA NAVAL (16 CONCEITOS)
+     * =========================================================================
+     */
+    function populateStudyGuide() {
+      elGuideContent.innerHTML = '';
+
+      const groups = [
+        {
+          key: 'processamento',
+          title: '⚙️ Processamento (7 Conceitos)',
+          badgeClass: 'text-red-300 border-red-500/40 bg-red-500/10'
+        },
+        {
+          key: 'memoria',
+          title: '💾 Memórias e Armazenamento (6 Conceitos)',
+          badgeClass: 'text-[#f4c95d] border-amber-400/40 bg-amber-400/10'
+        },
+        {
+          key: 'barramento',
+          title: '🔌 Comunicação e Transporte (3 Conceitos)',
+          badgeClass: 'text-sky-300 border-sky-400/40 bg-sky-400/10'
+        }
+      ];
+
+      groups.forEach(group => {
+        const section = document.createElement('div');
+        section.className = 'space-y-3';
+
+        const header = document.createElement('div');
+        header.className = `px-3.5 py-2 rounded-xl border font-bold text-xs sm:text-sm ${group.badgeClass}`;
+        header.textContent = group.title;
+        section.appendChild(header);
+
+        const groupComps = COMPONENTS.filter(c => c.category === group.key);
+        groupComps.forEach(comp => {
+          const item = document.createElement('div');
+          item.className = 'bg-[#060d1a] border border-slate-800 rounded-xl p-4';
+          item.innerHTML = `
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">${comp.icon}</span>
+                <h3 class="font-bold text-white text-sm">${comp.name}</h3>
+              </div>
+              <span class="text-[11px] font-mono-tech text-slate-400">Etapa ${comp.step}</span>
+            </div>
+            <p class="text-xs font-semibold text-[#f4c95d] mb-2">
+              ⚓ Analogia no Moby Dick: ${comp.analogyTitle}
+            </p>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-1.5">
+              ${comp.nauticalDesc}
+            </p>
+            <p class="text-xs text-sky-300/90 leading-relaxed">
+              <strong>Na Arquitetura:</strong> ${comp.techDesc}
+            </p>
+          `;
+          section.appendChild(item);
+        });
+
+        elGuideContent.appendChild(section);
+      });
+    }
+
+    /**
+     * =========================================================================
+     * EVENTOS E INICIALIZAÇÃO
+     * =========================================================================
+     */
+    function initEventListeners() {
+      elBtnInstall.addEventListener('click', handleInstallAttempt);
+
+      // Abas de filtro por categoria
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          state.activeFilter = tab.dataset.filter;
+          playSound('select');
+          renderFilterTabs();
+          renderWorkbench();
+        });
+      });
+
+      // Interação com peças já instaladas diretamente no SVG do navio
+      document.querySelectorAll('.ship-part').forEach(partEl => {
+        const compId = partEl.dataset.comp;
+        partEl.addEventListener('mouseenter', () => {
+          if (!state.installedIds.has(compId)) return;
+          const comp = getComponentById(compId);
+          if (comp) {
+            elShipHoverLabel.textContent = `${comp.icon} ${comp.shortName}: ${comp.analogyTitle}`;
+          }
+        });
+        partEl.addEventListener('click', () => {
+          if (!state.installedIds.has(compId)) return;
+          state.selectedId = compId;
+          playSound('select');
+          renderWorkbench();
+          renderDidacticPanel();
+        });
+      });
+
+      // Reiniciar imediatamente do zero
+      document.getElementById('btnRestart').addEventListener('click', resetGame);
+      document.getElementById('btnVictoryRestart').addEventListener('click', resetGame);
+
+      // Som
+      document.getElementById('btnToggleSound').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        document.getElementById('soundIcon').textContent = state.soundEnabled ? '🔊' : '🔇';
+        if (state.soundEnabled) playSound('select');
+      });
+
+      // Guia Naval
+      document.getElementById('btnOpenGuide').addEventListener('click', () => {
+        elGuideModal.classList.remove('hidden');
+      });
+      document.getElementById('btnCloseGuide').addEventListener('click', () => {
+        elGuideModal.classList.add('hidden');
+      });
+      document.getElementById('btnVictoryGuide').addEventListener('click', () => {
+        elVictoryModal.classList.add('hidden');
+        elGuideModal.classList.remove('hidden');
+      });
+    }
+
+    window.onload = function () {
+      populateStudyGuide();
+      initEventListeners();
+      renderShipSvg();
+      renderFilterTabs();
+      renderMissionPanel();
+      renderWorkbench();
+      renderDidacticPanel();
+    };
+  </script>
+</body>
+</html>
